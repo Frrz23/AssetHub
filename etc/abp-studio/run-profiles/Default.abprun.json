@@ -1,0 +1,13 @@
+﻿{
+  "applications": {
+    "AssetHub.Web": {
+      "type": "dotnet-project",
+      "launchUrl": "https://localhost:44378",
+      "path": "../../../src/AssetHub.Web/AssetHub.Web.csproj",
+      "kubernetesService": ".*-web$",
+      "execution": {
+        "order": 2
+      }
+    }
+  }
+}

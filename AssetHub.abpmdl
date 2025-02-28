@@ -1,0 +1,105 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.LeptonXLiteTheme": {
+      "version": "4.0.5",
+      "isInstalled": true
+    },
+    "Volo.Abp.Account": {
+      "version": "9.0.4",
+      "isInstalled": true
+    },
+    "Volo.Abp.OpenIddict": {
+      "version": "9.0.4",
+      "isInstalled": true
+    },
+    "Volo.Abp.Identity": {
+      "version": "9.0.4",
+      "isInstalled": true
+    },
+    "Volo.Abp.TenantManagement": {
+      "version": "9.0.4",
+      "isInstalled": true
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "9.0.4",
+      "isInstalled": true
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "9.0.4",
+      "isInstalled": true
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "9.0.4",
+      "isInstalled": true
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "AssetHub.Application": {
+      "path": "src/AssetHub.Application/AssetHub.Application.abppkg",
+      "folder": "src"
+    },
+    "AssetHub.Application.Tests": {
+      "path": "test/AssetHub.Application.Tests/AssetHub.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "AssetHub.Domain.Shared": {
+      "path": "src/AssetHub.Domain.Shared/AssetHub.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "AssetHub.Application.Contracts": {
+      "path": "src/AssetHub.Application.Contracts/AssetHub.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "AssetHub.HttpApi": {
+      "path": "src/AssetHub.HttpApi/AssetHub.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "AssetHub.HttpApi.Client": {
+      "path": "src/AssetHub.HttpApi.Client/AssetHub.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "AssetHub.Web": {
+      "path": "src/AssetHub.Web/AssetHub.Web.abppkg",
+      "folder": "src"
+    },
+    "AssetHub.Web.Tests": {
+      "path": "test/AssetHub.Web.Tests/AssetHub.Web.Tests.abppkg",
+      "folder": "test"
+    },
+    "AssetHub.EntityFrameworkCore.Tests": {
+      "path": "test/AssetHub.EntityFrameworkCore.Tests/AssetHub.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "AssetHub.EntityFrameworkCore": {
+      "path": "src/AssetHub.EntityFrameworkCore/AssetHub.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "AssetHub.TestBase": {
+      "path": "test/AssetHub.TestBase/AssetHub.TestBase.abppkg",
+      "folder": "test"
+    },
+    "AssetHub.Domain.Tests": {
+      "path": "test/AssetHub.Domain.Tests/AssetHub.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "AssetHub.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/AssetHub.HttpApi.Client.ConsoleTestApp/AssetHub.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "AssetHub.DbMigrator": {
+      "path": "src/AssetHub.DbMigrator/AssetHub.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "AssetHub.Domain": {
+      "path": "src/AssetHub.Domain/AssetHub.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}
