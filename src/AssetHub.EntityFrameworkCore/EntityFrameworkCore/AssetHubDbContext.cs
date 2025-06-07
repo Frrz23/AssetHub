@@ -14,6 +14,7 @@ using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using AssetHub.Entities;
 
 namespace AssetHub.EntityFrameworkCore;
 
@@ -50,6 +51,9 @@ public class AssetHubDbContext :
     public DbSet<IdentityLinkUser> LinkUsers { get; set; }
     public DbSet<IdentityUserDelegation> UserDelegations { get; set; }
     public DbSet<IdentitySession> Sessions { get; set; }
+    public DbSet<Asset> Assets { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+
 
     // Tenant Management
     public DbSet<Tenant> Tenants { get; set; }
