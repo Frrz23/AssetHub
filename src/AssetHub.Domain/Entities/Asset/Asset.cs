@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Entities;
 
-namespace AssetHub.Entities
+namespace AssetHub.Entities.Asset
 {
     public class Asset : Entity<Guid>
     {

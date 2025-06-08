@@ -14,7 +14,8 @@ using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
-using AssetHub.Entities;
+using AssetHub.Entities.Asset;
+using AssetHub.Entities.Tag;
 
 namespace AssetHub.EntityFrameworkCore;
 
