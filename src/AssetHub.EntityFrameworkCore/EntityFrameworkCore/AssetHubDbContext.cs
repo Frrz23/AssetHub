@@ -83,7 +83,23 @@ public class AssetHubDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
-        
+        builder.Entity<Asset>(b =>
+        {
+            b.ToTable("Assets");
+            b.ConfigureByConvention(); // Adds audit fields, etc.
+            b.Property(x => x.AssetName).IsRequired().HasMaxLength(128);
+            b.Property(x => x.SerialNumber).IsRequired();
+            // add more configuration if needed
+        });
+
+        builder.Entity<Tag>(b =>
+        {
+            b.ToTable("Tags");
+            b.ConfigureByConvention();
+            b.Property(x => x.MACAddress).IsRequired().HasMaxLength(64);
+            // add more configuration if needed
+        });
+
         /* Configure your own tables/entities inside here */
 
         //builder.Entity<YourEntity>(b =>

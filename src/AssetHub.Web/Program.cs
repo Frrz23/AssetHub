@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
+using Volo.Abp.AspNetCore.ExceptionHandling;
 
 namespace AssetHub.Web;
 
@@ -21,17 +22,27 @@ public class Program
         {
             Log.Information("Starting web host.");
             var builder = WebApplication.CreateBuilder(args);
+
+            // 1) Tell ABP to include exception details in responses (only in Dev)
+            if (builder.Environment.IsDevelopment())
+            {
+                builder.Services.Configure<AbpExceptionHandlingOptions>(options =>
+                {
+                    options.SendExceptionsDetailsToClients = true;
+                });
+            }
+
             builder.Host
                 .AddAppSettingsSecretsJson()
                 .UseAutofac()
                 .UseSerilog((context, services, loggerConfiguration) =>
                 {
                     loggerConfiguration
-                    #if DEBUG
+#if DEBUG
                         .MinimumLevel.Debug()
-                    #else
-                        .MinimumLevel.Information()
-                    #endif
+#else
+                    .MinimumLevel.Information()
+#endif
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                         .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
                         .Enrich.FromLogContext()
@@ -39,8 +50,16 @@ public class Program
                         .WriteTo.Async(c => c.Console())
                         .WriteTo.Async(c => c.AbpStudio(services));
                 });
+
             await builder.AddApplicationAsync<AssetHubWebModule>();
             var app = builder.Build();
+
+            // 2) Use the Developer Exception Page in the ASP.NET Core middleware pipeline
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
             await app.InitializeApplicationAsync();
             await app.RunAsync();
             return 0;
@@ -55,4 +74,5 @@ public class Program
             Log.CloseAndFlush();
         }
     }
+
 }

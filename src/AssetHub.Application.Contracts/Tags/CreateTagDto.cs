@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AssetHub.Entities.Tag
+namespace AssetHub.Application.Contracts.Tags
 {
     public class CreateTagDto
     {

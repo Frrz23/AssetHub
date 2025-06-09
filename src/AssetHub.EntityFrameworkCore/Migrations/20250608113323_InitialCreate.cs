@@ -5,7 +5,7 @@
 namespace AssetHub.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialAssetTagSchema : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

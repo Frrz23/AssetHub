@@ -1,18 +1,22 @@
-﻿using AutoMapper.Internal.Mappers;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using AssetHub.Application.Contracts.Tags;
+using AssetHub.Entities.Tag;             // Your Tag entity
 using Volo.Abp.Application.Services;
+using Volo.Abp.Domain.Repositories;     // <-- Add this
 
-namespace AssetHub.Entities.Tag
+namespace AssetHub.Application.Tags
 {
     public class TagAppService : ApplicationService, ITagAppService
     {
-        private readonly ITagRepository _tagRepository;
+        // Change this…
+        // private readonly ITagRepository _tagRepository;
+        // public TagAppService(ITagRepository tagRepository)
 
-        public TagAppService(ITagRepository tagRepository)
+        // …to this:
+        private readonly IRepository<Tag, Guid> _tagRepository;
+        public TagAppService(IRepository<Tag, Guid> tagRepository)
         {
             _tagRepository = tagRepository;
         }
