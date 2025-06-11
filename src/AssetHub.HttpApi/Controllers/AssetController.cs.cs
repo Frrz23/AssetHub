@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AssetHub.Entities.Asset;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.AspNetCore.Mvc;
@@ -9,23 +11,46 @@ namespace AssetHub.Controllers
     [ApiController]
     public class AssetController : AbpController
     {
+        private readonly IAssetAppService _assetAppService;
+
+        public AssetController(IAssetAppService assetAppService)
+        {
+            _assetAppService = assetAppService;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAllAssets()
         {
-            var assets = new List<string> { "Laptop", "Phone", "Printer" };
+            var assets = await _assetAppService.GetListAsync();
             return Ok(assets);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetAssetById(int id)
+        public async Task<IActionResult> GetAssetById(Guid id)
         {
-            return Ok($"Asset with ID: {id}");
+            var asset = await _assetAppService.GetAsync(id);
+            return Ok(asset);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAsset([FromBody] string assetName)
+        public async Task<IActionResult> CreateAsset([FromBody] CreateAssetDto input)
         {
-            return Created("", $"Asset {assetName} created.");
+            var asset = await _assetAppService.CreateAsync(input);
+            return CreatedAtAction(nameof(GetAssetById), new { id = asset.Id }, asset);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAsset(Guid id, [FromBody] CreateAssetDto input)
+        {
+            var asset = await _assetAppService.UpdateAsync(id, input);
+            return Ok(asset);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAsset(Guid id)
+        {
+            await _assetAppService.DeleteAsync(id);
+            return NoContent();
         }
     }
 }

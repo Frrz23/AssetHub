@@ -4,25 +4,40 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Domain.Repositories;
 
 namespace AssetHub.Entities.Asset
 {
     public class AssetAppService : ApplicationService, IAssetAppService
     {
-        private readonly IAssetRepository _assetRepository;
+        private readonly IRepository<Asset, Guid> _assetRepository;
 
-        public AssetAppService(IAssetRepository assetRepository)
+        public AssetAppService(IRepository<Asset, Guid> assetRepository)
         {
             _assetRepository = assetRepository;
         }
 
         public async Task<AssetDto> CreateAsync(CreateAssetDto input)
         {
+            input.AssetName = input.AssetName?.Trim();
+            input.SerialNumber = input.SerialNumber?.Trim();
+            input.Category = input.Category?.Trim();
+            input.Department = input.Department?.Trim();
+
+            // Check for unique SerialNumber
+            var existing = await _assetRepository.FirstOrDefaultAsync(x => x.SerialNumber == input.SerialNumber);
+            if (existing != null)
+            {
+                throw new UserFriendlyException("An asset with this Serial Number already exists.");
+            }
+
             var asset = ObjectMapper.Map<CreateAssetDto, Asset>(input);
             asset = await _assetRepository.InsertAsync(asset, autoSave: true);
             return ObjectMapper.Map<Asset, AssetDto>(asset);
         }
+
 
         public async Task<AssetDto> GetAsync(Guid id)
         {

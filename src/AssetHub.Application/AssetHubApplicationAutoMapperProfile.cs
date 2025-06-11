@@ -1,4 +1,5 @@
 using AssetHub.Application.Contracts.Tags;
+using AssetHub.Entities.Asset;
 using AssetHub.Entities.Tag;
 using AutoMapper;
 
@@ -10,6 +11,9 @@ public class AssetHubApplicationAutoMapperProfile : Profile
     {
         CreateMap<Tag, TagDto>();
         CreateMap<CreateTagDto, Tag>();
+        CreateMap<CreateAssetDto, Asset>();
+        CreateMap<Asset, AssetDto>();
+
 
     }
 }
