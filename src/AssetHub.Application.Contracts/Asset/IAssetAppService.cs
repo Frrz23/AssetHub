@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AssetHub.Asset;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +15,9 @@ namespace AssetHub.Entities.Asset
         Task<List<AssetDto>> GetListAsync();
         Task<AssetDto> UpdateAsync(Guid id, CreateAssetDto input);
         Task DeleteAsync(Guid id);
+        Task DeactivateAsync(Guid id);
+        Task ApproveAsync(Guid id);
+        Task<AssetDto> ApproveAsync(Guid id, ApproveAssetDto input);
+
     }
 }

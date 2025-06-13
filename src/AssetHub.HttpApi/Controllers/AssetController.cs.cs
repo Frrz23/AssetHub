@@ -1,4 +1,5 @@
-﻿using AssetHub.Entities.Asset;
+﻿using AssetHub.Asset;
+using AssetHub.Entities.Asset;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -52,5 +53,19 @@ namespace AssetHub.Controllers
             await _assetAppService.DeleteAsync(id);
             return NoContent();
         }
+        [HttpPost("{id}/deactivate")]
+        public async Task<IActionResult> DeactivateAsset(Guid id)
+        {
+            await _assetAppService.DeactivateAsync(id);
+            return NoContent();
+        }
+        [HttpPost("{id}/approve")]
+        public async Task<IActionResult> ApproveAsset(Guid id)
+        {
+            await _assetAppService.ApproveAsync(id);
+            return NoContent();
+        }
+
+
     }
 }

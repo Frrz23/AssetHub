@@ -4,6 +4,7 @@ using AssetHub.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace AssetHub.Migrations
 {
     [DbContext(typeof(AssetHubDbContext))]
-    partial class AssetHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250611091533_assetupdatetwo")]
+    partial class assetupdatetwo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,9 +34,6 @@ namespace AssetHub.Migrations
 
                     b.Property<Guid?>("ApprovedById")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("ApprovedTime")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("AssetName")
                         .IsRequired()

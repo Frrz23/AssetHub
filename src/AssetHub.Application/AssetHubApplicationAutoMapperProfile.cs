@@ -11,9 +11,8 @@ public class AssetHubApplicationAutoMapperProfile : Profile
     {
         CreateMap<Tag, TagDto>();
         CreateMap<CreateTagDto, Tag>();
-        CreateMap<CreateAssetDto, Asset>();
-        CreateMap<Asset, AssetDto>();
-
+        CreateMap<AssetHub.Entities.Asset.CreateAssetDto, AssetHub.Entities.Asset.Asset>();
+        CreateMap<AssetHub.Entities.Asset.Asset, AssetHub.Entities.Asset.AssetDto>();
 
     }
 }

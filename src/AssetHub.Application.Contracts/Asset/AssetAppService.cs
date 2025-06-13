@@ -1,4 +1,5 @@
-﻿using AutoMapper.Internal.Mappers;
+﻿using AssetHub.Asset;
+using AutoMapper.Internal.Mappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace AssetHub.Entities.Asset
             input.Category = input.Category?.Trim();
             input.Department = input.Department?.Trim();
 
+
             // Check for unique SerialNumber
             var existing = await _assetRepository.FirstOrDefaultAsync(x => x.SerialNumber == input.SerialNumber);
             if (existing != null)
@@ -34,6 +36,11 @@ namespace AssetHub.Entities.Asset
             }
 
             var asset = ObjectMapper.Map<CreateAssetDto, Asset>(input);
+            var currentUserId = CurrentUser.Id;
+
+            asset.IsApproved = false;
+            asset.RequestedById = currentUserId;
+
             asset = await _assetRepository.InsertAsync(asset, autoSave: true);
             return ObjectMapper.Map<Asset, AssetDto>(asset);
         }
@@ -47,13 +54,18 @@ namespace AssetHub.Entities.Asset
 
         public async Task<List<AssetDto>> GetListAsync()
         {
-            var assets = await _assetRepository.GetListAsync();
+            var assets = await _assetRepository.GetListAsync(x => x.IsActive);
             return ObjectMapper.Map<List<Asset>, List<AssetDto>>(assets);
         }
 
         public async Task<AssetDto> UpdateAsync(Guid id, CreateAssetDto input)
         {
             var asset = await _assetRepository.GetAsync(id);
+            var currentUserId = CurrentUser.Id;
+
+            asset.IsApproved = false;
+            asset.RequestedById = currentUserId;
+
             ObjectMapper.Map(input, asset); // updates the entity
             asset = await _assetRepository.UpdateAsync(asset);
             return ObjectMapper.Map<Asset, AssetDto>(asset);
@@ -63,5 +75,41 @@ namespace AssetHub.Entities.Asset
         {
             await _assetRepository.DeleteAsync(id);
         }
+        public async Task DeactivateAsync(Guid id)
+        {
+            var asset = await _assetRepository.GetAsync(id);
+            asset.IsActive = false;
+            await _assetRepository.UpdateAsync(asset);
+        }
+        public async Task ApproveAsync(Guid id)
+        {
+            var asset = await _assetRepository.GetAsync(id);
+            asset.IsApproved = true;
+            asset.ApprovedById = CurrentUser.Id;
+            await _assetRepository.UpdateAsync(asset);
+        }
+        public async Task<AssetDto> ApproveAsync(Guid id, ApproveAssetDto input)
+        {
+            var asset = await _assetRepository.GetAsync(id);
+
+            if (input.Approve)
+            {
+                asset.IsApproved = true;
+                asset.ApprovedById = CurrentUser.Id;
+                asset.ApprovedTime = Clock.Normalize(DateTime.UtcNow);
+            }
+            else
+            {
+                asset.IsApproved = false;
+                asset.ApprovedById = null;
+                asset.ApprovedTime = null;
+                // Optionally log or store the rejection comment somewhere
+            }
+
+            asset = await _assetRepository.UpdateAsync(asset);
+            return ObjectMapper.Map<Asset, AssetDto>(asset);
+        }
+
+
     }
 }

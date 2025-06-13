@@ -284,7 +284,7 @@ public class AssetHubWebModule : AbpModule
         app.UseAbpSecurityHeaders();
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
-
+        app.UseDeveloperExceptionPage();
         if (MultiTenancyConsts.IsEnabled)
         {
             app.UseMultiTenancy();
