@@ -6,6 +6,9 @@ using Volo.Abp.AutoMapper;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Modularity;
 using Volo.Abp.TenantManagement;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.BlobStoring.FileSystem;
+using System.IO;
 
 namespace AssetHub;
 
@@ -17,15 +20,22 @@ namespace AssetHub;
     typeof(AbpIdentityApplicationModule),
     typeof(AbpAccountApplicationModule),
     typeof(AbpTenantManagementApplicationModule),
-    typeof(AbpSettingManagementApplicationModule)
+    typeof(AbpSettingManagementApplicationModule),
+     typeof(AbpBlobStoringFileSystemModule)
     )]
 public class AssetHubApplicationModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        Configure<AbpAutoMapperOptions>(options =>
+        Configure<AbpBlobStoringOptions>(options =>
         {
-            options.AddMaps<AssetHubApplicationModule>();
+            options.Containers.Configure(AssetManagementBlobContainers.AssetImportTemplates, container =>
+            {
+                container.UseFileSystem(files =>
+                {
+                    files.BasePath = Path.Combine(Directory.GetCurrentDirectory(), "blobs");
+                });
+            });
         });
     }
 }

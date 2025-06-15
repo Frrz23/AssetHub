@@ -49,6 +49,10 @@ using Volo.Abp.OpenIddict;
 using Volo.Abp.Security.Claims;
 using Volo.Abp.SettingManagement.Web;
 using Volo.Abp.Studio.Client.AspNetCore;
+using AssetHub.Asset;
+using System.Threading.Tasks;
+using Volo.Abp.BlobStoring.FileSystem;
+using AssetHub.Application.Asset;
 
 namespace AssetHub.Web;
 
@@ -64,7 +68,8 @@ namespace AssetHub.Web;
     typeof(AbpTenantManagementWebModule),
     typeof(AbpFeatureManagementWebModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpAspNetCoreSerilogModule)
+    typeof(AbpAspNetCoreSerilogModule),
+     typeof(AbpBlobStoringFileSystemModule)
 )]
 public class AssetHubWebModule : AbpModule
 {
@@ -277,6 +282,7 @@ public class AssetHubWebModule : AbpModule
                    .AllowAnyMethod()
                    .AllowAnyHeader();
         });
+
         app.UseCorrelationId();
         app.MapAbpStaticAssets();
         app.UseAbpStudioLink();
@@ -300,6 +306,15 @@ public class AssetHubWebModule : AbpModule
         });
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
+        var seeder = context.ServiceProvider.GetRequiredService<AssetExcelTemplateSeeder>();
+        seeder.SeedAsync().GetAwaiter().GetResult();
         app.UseConfiguredEndpoints();
+
     }
+    //public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context)
+    //{
+    //    var seeder = context.ServiceProvider.GetRequiredService<AssetExcelTemplateSeeder>();
+    //    await seeder.SeedAsync();
+    //}
+
 }

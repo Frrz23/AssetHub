@@ -18,6 +18,8 @@ namespace AssetHub.Entities.Asset
         Task DeactivateAsync(Guid id);
         Task ApproveAsync(Guid id);
         Task<AssetDto> ApproveAsync(Guid id, ApproveAssetDto input);
+        Task<FileDto> DownloadTemplateAsync();
+
 
     }
 }

@@ -66,6 +66,12 @@ namespace AssetHub.Controllers
             return NoContent();
         }
 
+        [HttpGet("download-template")]
+        public async Task<IActionResult> DownloadTemplate()
+        {
+            var file = await _assetAppService.DownloadTemplateAsync();
+            return File(file.Content, file.ContentType, file.FileName);
+        }
 
     }
 }

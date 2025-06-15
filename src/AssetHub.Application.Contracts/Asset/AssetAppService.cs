@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.BlobStoring;
 using Volo.Abp.Domain.Repositories;
 
 namespace AssetHub.Entities.Asset
@@ -14,10 +15,13 @@ namespace AssetHub.Entities.Asset
     public class AssetAppService : ApplicationService, IAssetAppService
     {
         private readonly IRepository<Asset, Guid> _assetRepository;
+        private readonly IBlobContainer _blobContainer;
 
-        public AssetAppService(IRepository<Asset, Guid> assetRepository)
+
+        public AssetAppService(IRepository<Asset, Guid> assetRepository, IBlobContainerFactory blobContainerFactory)
         {
             _assetRepository = assetRepository;
+            _blobContainer = blobContainerFactory.Create(AssetManagementBlobContainers.AssetImportTemplates);
         }
 
         public async Task<AssetDto> CreateAsync(CreateAssetDto input)
@@ -109,7 +113,25 @@ namespace AssetHub.Entities.Asset
             asset = await _assetRepository.UpdateAsync(asset);
             return ObjectMapper.Map<Asset, AssetDto>(asset);
         }
+        public async Task<FileDto> DownloadTemplateAsync()
+        {
+            var fileName = "AssetTemplate.xlsx";
 
+            if (!await _blobContainer.ExistsAsync(fileName))
+            {
+                throw new UserFriendlyException("Template not found in storage.");
+            }
 
+            var fileBytes = await _blobContainer.GetAllBytesAsync(fileName);
+            return new FileDto
+            {
+                FileName = fileName,
+                Content = fileBytes,
+                ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            };
+        }
     }
+
+
+
 }
