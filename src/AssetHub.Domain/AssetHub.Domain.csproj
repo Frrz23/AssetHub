@@ -22,9 +22,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Polly" Version="8.6.0" />
     <PackageReference Include="Volo.Abp.Ddd.Application" Version="9.2.0" />
     <PackageReference Include="Volo.Abp.Emailing" Version="9.2.0" />
     <PackageReference Include="Volo.Abp.Caching" Version="9.2.0" />
+    <PackageReference Include="Volo.Abp.MailKit" Version="9.2.0" />
     <PackageReference Include="Volo.Abp.PermissionManagement.Domain.Identity" Version="9.2.0" />
     <PackageReference Include="Volo.Abp.PermissionManagement.Domain.OpenIddict" Version="9.2.0" />
     <PackageReference Include="Volo.Abp.BackgroundJobs.Domain" Version="9.2.0" />

@@ -1,4 +1,5 @@
 ﻿using AssetHub.Asset;
+using AssetHub.Common;
 using AutoMapper.Internal.Mappers;
 using System;
 using System.Collections.Generic;
@@ -16,12 +17,15 @@ namespace AssetHub.Entities.Asset
     {
         private readonly IRepository<Asset, Guid> _assetRepository;
         private readonly IBlobContainer _blobContainer;
+        private readonly ITimeZoneConverter _timeZoneConverter;
 
 
-        public AssetAppService(IRepository<Asset, Guid> assetRepository, IBlobContainerFactory blobContainerFactory)
+
+        public AssetAppService(IRepository<Asset, Guid> assetRepository, IBlobContainerFactory blobContainerFactory, ITimeZoneConverter timeZoneConverter)
         {
             _assetRepository = assetRepository;
             _blobContainer = blobContainerFactory.Create(AssetManagementBlobContainers.AssetImportTemplates);
+            _timeZoneConverter = timeZoneConverter;
         }
 
         public async Task<AssetDto> CreateAsync(CreateAssetDto input)
@@ -38,6 +42,7 @@ namespace AssetHub.Entities.Asset
             {
                 throw new UserFriendlyException("An asset with this Serial Number already exists.");
             }
+            input.ReceivedDate = input.ReceivedDate.ToUniversalTime();
 
             var asset = ObjectMapper.Map<CreateAssetDto, Asset>(input);
             var currentUserId = CurrentUser.Id;
@@ -46,15 +51,17 @@ namespace AssetHub.Entities.Asset
             asset.RequestedById = currentUserId;
 
             asset = await _assetRepository.InsertAsync(asset, autoSave: true);
-            return ObjectMapper.Map<Asset, AssetDto>(asset);
+            return MapWithConvertedDates(asset); // 🔁 Use helper for timezone-adjusted DTO
+
         }
 
 
         public async Task<AssetDto> GetAsync(Guid id)
         {
             var asset = await _assetRepository.GetAsync(id);
-            return ObjectMapper.Map<Asset, AssetDto>(asset);
+            return MapWithConvertedDates(asset);
         }
+
 
         public async Task<List<AssetDto>> GetListAsync()
         {
@@ -71,8 +78,9 @@ namespace AssetHub.Entities.Asset
             asset.RequestedById = currentUserId;
 
             ObjectMapper.Map(input, asset); // updates the entity
+            asset.ReceivedDate = input.ReceivedDate.ToUniversalTime();
             asset = await _assetRepository.UpdateAsync(asset);
-            return ObjectMapper.Map<Asset, AssetDto>(asset);
+            return MapWithConvertedDates(asset);
         }
 
         public async Task DeleteAsync(Guid id)
@@ -111,7 +119,7 @@ namespace AssetHub.Entities.Asset
             }
 
             asset = await _assetRepository.UpdateAsync(asset);
-            return ObjectMapper.Map<Asset, AssetDto>(asset);
+            return MapWithConvertedDates(asset);
         }
         public async Task<FileDto> DownloadTemplateAsync()
         {
@@ -130,8 +138,20 @@ namespace AssetHub.Entities.Asset
                 ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             };
         }
+    
+
+    private AssetDto MapWithConvertedDates(Asset asset)
+        {
+            var dto = ObjectMapper.Map<Asset, AssetDto>(asset);
+            dto.ReceivedDate = _timeZoneConverter.ConvertToUserTime(asset.ReceivedDate);
+
+            if (asset.ApprovedTime.HasValue)
+            {
+                dto.ApprovedTime = _timeZoneConverter.ConvertToUserTime(asset.ApprovedTime.Value);
+            }
+
+            return dto;
+        }
+
     }
-
-
-
-}
+    }

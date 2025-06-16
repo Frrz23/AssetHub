@@ -53,6 +53,9 @@ using AssetHub.Asset;
 using System.Threading.Tasks;
 using Volo.Abp.BlobStoring.FileSystem;
 using AssetHub.Application.Asset;
+using AssetHub.BackgroundJobs;
+using System.Text.Json.Serialization;
+
 
 namespace AssetHub.Web;
 
@@ -142,12 +145,15 @@ public class AssetHubWebModule : AbpModule
             {
                 options.DisableTransportSecurityRequirement = true;
             });
-            
+
             Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
             });
         }
+        context.Services.AddSingleton<MailKitEmailSender>();
+        context.Services.AddHostedService<AssetApprovalEmailWorker>();
+
 
         ConfigureBundles();
         ConfigureUrls(configuration);
@@ -162,6 +168,7 @@ public class AssetHubWebModule : AbpModule
         {
             options.IsDynamicPermissionStoreEnabled = true;
         });
+        context.Services.AddSingleton<AssetHub.Common.ITimeZoneConverter, AssetHub.Common.TimeZoneConverter>();
     }
 
 
