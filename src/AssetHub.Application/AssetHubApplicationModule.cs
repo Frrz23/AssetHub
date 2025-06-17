@@ -37,5 +37,10 @@ public class AssetHubApplicationModule : AbpModule
                 });
             });
         });
+        Configure<AbpAutoMapperOptions>(options =>
+        {
+            options.AddMaps<AssetHubApplicationModule>(); // ✅ important
+        });
+
     }
 }

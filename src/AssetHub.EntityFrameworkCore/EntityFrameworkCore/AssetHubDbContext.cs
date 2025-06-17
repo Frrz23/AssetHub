@@ -16,6 +16,7 @@ using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using AssetHub.Entities.Asset;
 using AssetHub.Entities.Tag;
+using AssetHub.Entities.AuditLog;
 
 namespace AssetHub.EntityFrameworkCore;
 
@@ -54,6 +55,8 @@ public class AssetHubDbContext :
     public DbSet<IdentitySession> Sessions { get; set; }
     public DbSet<Asset> Assets { get; set; }
     public DbSet<Tag> Tags { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
+
 
 
     // Tenant Management
@@ -99,6 +102,16 @@ public class AssetHubDbContext :
             b.Property(x => x.MACAddress).IsRequired().HasMaxLength(64);
             // add more configuration if needed
         });
+        builder.Entity<AuditLog>(b =>
+        {
+            b.ToTable("AuditLogs");
+            b.ConfigureByConvention();
+            b.Property(x => x.EntityName).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Action).IsRequired().HasMaxLength(64);
+            b.Property(x => x.PerformedBy).HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(1024);
+        });
+
 
         /* Configure your own tables/entities inside here */
 

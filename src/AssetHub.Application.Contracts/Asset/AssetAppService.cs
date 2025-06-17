@@ -1,4 +1,5 @@
 ﻿using AssetHub.Asset;
+using AssetHub.AuditLogService;
 using AssetHub.Common;
 using AutoMapper.Internal.Mappers;
 using System;
@@ -18,14 +19,17 @@ namespace AssetHub.Entities.Asset
         private readonly IRepository<Asset, Guid> _assetRepository;
         private readonly IBlobContainer _blobContainer;
         private readonly ITimeZoneConverter _timeZoneConverter;
+        private readonly IAuditLogService _auditLogService;
 
 
 
-        public AssetAppService(IRepository<Asset, Guid> assetRepository, IBlobContainerFactory blobContainerFactory, ITimeZoneConverter timeZoneConverter)
+
+        public AssetAppService(IRepository<Asset, Guid> assetRepository, IBlobContainerFactory blobContainerFactory, ITimeZoneConverter timeZoneConverter, IAuditLogService auditLogService)
         {
             _assetRepository = assetRepository;
             _blobContainer = blobContainerFactory.Create(AssetManagementBlobContainers.AssetImportTemplates);
             _timeZoneConverter = timeZoneConverter;
+            _auditLogService = auditLogService;
         }
 
         public async Task<AssetDto> CreateAsync(CreateAssetDto input)
@@ -51,6 +55,7 @@ namespace AssetHub.Entities.Asset
             asset.RequestedById = currentUserId;
 
             asset = await _assetRepository.InsertAsync(asset, autoSave: true);
+            await _auditLogService.LogAsync("Asset", "Create", $"Asset '{input.AssetName}' created.");
             return MapWithConvertedDates(asset); // 🔁 Use helper for timezone-adjusted DTO
 
         }
@@ -80,18 +85,24 @@ namespace AssetHub.Entities.Asset
             ObjectMapper.Map(input, asset); // updates the entity
             asset.ReceivedDate = input.ReceivedDate.ToUniversalTime();
             asset = await _assetRepository.UpdateAsync(asset);
+            await _auditLogService.LogAsync("Asset", "Update", $"Asset '{input.AssetName}' updated.");
             return MapWithConvertedDates(asset);
         }
 
         public async Task DeleteAsync(Guid id)
         {
+            var asset = await _assetRepository.GetAsync(id);
+            await _auditLogService.LogAsync("Asset", "Delete", $"Asset '{asset.AssetName}' deleted.");
             await _assetRepository.DeleteAsync(id);
+
         }
         public async Task DeactivateAsync(Guid id)
         {
             var asset = await _assetRepository.GetAsync(id);
             asset.IsActive = false;
             await _assetRepository.UpdateAsync(asset);
+            await _auditLogService.LogAsync("Asset", "Deactivate", $"Asset '{asset.AssetName}' deactivated.");
+
         }
         public async Task ApproveAsync(Guid id)
         {
@@ -99,6 +110,7 @@ namespace AssetHub.Entities.Asset
             asset.IsApproved = true;
             asset.ApprovedById = CurrentUser.Id;
             await _assetRepository.UpdateAsync(asset);
+
         }
         public async Task<AssetDto> ApproveAsync(Guid id, ApproveAssetDto input)
         {
@@ -119,6 +131,8 @@ namespace AssetHub.Entities.Asset
             }
 
             asset = await _assetRepository.UpdateAsync(asset);
+            await _auditLogService.LogAsync("Asset", "Approve", $"Asset '{asset.AssetName}' was {(input.Approve ? "approved" : "rejected")}.");
+
             return MapWithConvertedDates(asset);
         }
         public async Task<FileDto> DownloadTemplateAsync()

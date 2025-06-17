@@ -28,7 +28,7 @@ namespace AssetHub.BackgroundJobs
                     "<b>Please review pending asset approvals.</b>"
                 );
 
-                await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken); // run every 10 min
+                await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken); // run every 10 min
             }
         }
     }
