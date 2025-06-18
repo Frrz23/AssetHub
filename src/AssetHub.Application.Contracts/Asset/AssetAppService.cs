@@ -2,8 +2,11 @@
 using AssetHub.AuditLogService;
 using AssetHub.Common;
 using AutoMapper.Internal.Mappers;
+using NPOI.XSSF.UserModel;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -167,5 +170,66 @@ namespace AssetHub.Entities.Asset
             return dto;
         }
 
+
+        public async Task<FileDto> ExportToExcelAsync()
+        {
+            var assets = await _assetRepository.GetListAsync(x => x.IsActive);
+
+            // 1) Create a new workbook and sheet
+            var workbook = new XSSFWorkbook();
+            var sheet = workbook.CreateSheet("Assets");
+
+            // 2) Create header row
+            var header = sheet.CreateRow(0);
+            header.CreateCell(0).SetCellValue("Asset Name");
+            header.CreateCell(1).SetCellValue("Serial Number");
+            header.CreateCell(2).SetCellValue("Category");
+            header.CreateCell(3).SetCellValue("Department");
+            header.CreateCell(4).SetCellValue("Received Date");
+            header.CreateCell(5).SetCellValue("Is Approved");
+
+            // 3) Fill in data rows
+            for (int i = 0; i < assets.Count; i++)
+            {
+                var row = sheet.CreateRow(i + 1);
+                var asset = assets[i];
+                row.CreateCell(0).SetCellValue(asset.AssetName);
+                row.CreateCell(1).SetCellValue(asset.SerialNumber);
+                row.CreateCell(2).SetCellValue(asset.Category);
+                row.CreateCell(3).SetCellValue(asset.Department);
+                row.CreateCell(4).SetCellValue(
+                    _timeZoneConverter
+                        .ConvertToUserTime(asset.ReceivedDate)
+                        .ToString("yyyy-MM-dd")
+                );
+                row.CreateCell(5).SetCellValue(asset.IsApproved ? "Yes" : "No");
+            }
+
+            // 4) Auto-size columns (optional)
+            for (int col = 0; col < 6; col++)
+            {
+                sheet.AutoSizeColumn(col);
+            }
+
+            // 5) Write to memory stream
+            byte[] bytes;
+            using (var ms = new MemoryStream())
+            {
+                workbook.Write(ms);
+                bytes = ms.ToArray();
+            }
+
+            return new FileDto
+            {
+                FileName = $"AssetExport_{Clock.Now:yyyyMMdd_HHmmss}.xlsx",
+                Content = bytes,
+                ContentType =
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            };
+        }
+
+
+
+
     }
-    }
+}

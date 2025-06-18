@@ -23,7 +23,7 @@ namespace AssetHub.BackgroundJobs
             {
                 // Example logic
                 await _emailSender.SendEmailAsync(
-                    "aryankhatiwoda9@gmail.com",
+                    "test@gmail.com",
                     "Asset Approval Reminder",
                     "<b>Please review pending asset approvals.</b>"
                 );

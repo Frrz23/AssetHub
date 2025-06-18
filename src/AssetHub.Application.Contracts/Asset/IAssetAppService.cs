@@ -19,6 +19,7 @@ namespace AssetHub.Entities.Asset
         Task ApproveAsync(Guid id);
         Task<AssetDto> ApproveAsync(Guid id, ApproveAssetDto input);
         Task<FileDto> DownloadTemplateAsync();
+        Task<FileDto> ExportToExcelAsync();
 
 
     }

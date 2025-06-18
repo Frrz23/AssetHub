@@ -72,6 +72,19 @@ namespace AssetHub.Controllers
             var file = await _assetAppService.DownloadTemplateAsync();
             return File(file.Content, file.ContentType, file.FileName);
         }
+        [HttpGet("export")]
+        [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+        public async Task<IActionResult> ExportToExcel()
+        {
+            var fileDto = await _assetAppService.ExportToExcelAsync();
 
-    }
+            // This returns a FileContentResult so Swagger/browser will download it
+            return File(
+                fileDto.Content,
+                fileDto.ContentType,
+                fileDto.FileName
+            );
+        }
+
+        }
 }
