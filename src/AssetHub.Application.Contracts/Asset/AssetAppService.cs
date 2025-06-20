@@ -2,6 +2,7 @@
 using AssetHub.AuditLogService;
 using AssetHub.Common;
 using AutoMapper.Internal.Mappers;
+using ClosedXML.Excel;
 using NPOI.XSSF.UserModel;
 using OfficeOpenXml;
 using System;
@@ -228,6 +229,46 @@ namespace AssetHub.Entities.Asset
             };
         }
 
+        public async Task ImportFromExcelAsync(byte[] fileBytes, string fileName)
+        {
+            using var stream = new MemoryStream(fileBytes);
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheet(1); // first sheet
+
+            var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Skip header
+
+            foreach (var row in rows)
+            {
+                var assetName = row.Cell(1).GetString()?.Trim();
+                var serialNumber = row.Cell(2).GetString()?.Trim();
+                var category = row.Cell(3).GetString()?.Trim();
+                var department = row.Cell(4).GetString()?.Trim();
+                var receivedDateString = row.Cell(5).GetString()?.Trim();
+
+                if (string.IsNullOrWhiteSpace(assetName) || string.IsNullOrWhiteSpace(serialNumber))
+                    continue;
+
+                if (await _assetRepository.AnyAsync(x => x.SerialNumber == serialNumber))
+                    continue;
+
+                DateTime.TryParse(receivedDateString, out var receivedDate);
+
+                var asset = new Asset
+                {
+                    AssetName = assetName,
+                    SerialNumber = serialNumber,
+                    Category = category,
+                    Department = department,
+                    ReceivedDate = receivedDate.ToUniversalTime(),
+                    IsApproved = false,
+                    RequestedById = CurrentUser.Id,
+                    IsActive = true
+                };
+
+                await _assetRepository.InsertAsync(asset, autoSave: true);
+                await _auditLogService.LogAsync("Asset", "Import", $"Imported asset '{asset.AssetName}' from Excel.");
+            }
+        }
 
 
 

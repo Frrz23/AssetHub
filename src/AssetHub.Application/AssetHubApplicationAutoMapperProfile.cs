@@ -1,4 +1,5 @@
 using AssetHub.Application.Contracts.Tags;
+using AssetHub.AssetAssignments;
 using AssetHub.AuditLogService;
 using AssetHub.Entities.Asset;
 using AssetHub.Entities.AuditLog;
@@ -16,6 +17,9 @@ public class AssetHubApplicationAutoMapperProfile : Profile
         CreateMap<AssetHub.Entities.Asset.CreateAssetDto, AssetHub.Entities.Asset.Asset>();
         CreateMap<AssetHub.Entities.Asset.Asset, AssetHub.Entities.Asset.AssetDto>();
         CreateMap<AuditLog, AuditLogDto>();
+        CreateMap<CreateAssetAssignmentDto, AssetAssignmentHistory>();
+        CreateMap<AssetAssignmentHistory, AssetAssignmentDto>();
+
 
 
     }

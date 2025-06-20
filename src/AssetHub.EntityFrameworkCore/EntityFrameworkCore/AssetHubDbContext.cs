@@ -56,6 +56,8 @@ public class AssetHubDbContext :
     public DbSet<Asset> Assets { get; set; }
     public DbSet<Tag> Tags { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<AssetAssignmentHistory> AssetAssignmentHistories { get; set; }
+
 
 
 

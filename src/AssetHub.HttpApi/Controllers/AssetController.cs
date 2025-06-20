@@ -1,9 +1,12 @@
 ﻿using AssetHub.Asset;
 using AssetHub.Entities.Asset;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
 
 namespace AssetHub.Controllers
@@ -85,6 +88,23 @@ namespace AssetHub.Controllers
                 fileDto.FileName
             );
         }
+        [HttpPost("import-excel")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ImportFromExcelAsync([FromForm] ImportExcelInputDto input)
+        {
+            var file = input.File;
 
+            if (file == null || file.Length == 0)
+            {
+                throw new UserFriendlyException("Invalid file.");
+            }
+
+            using var stream = new MemoryStream();
+            await file.CopyToAsync(stream);
+
+            await _assetAppService.ImportFromExcelAsync(stream.ToArray(), file.FileName);
+            return NoContent();
         }
+
+    }
 }
