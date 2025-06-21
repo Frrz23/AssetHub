@@ -1,8 +1,11 @@
 ﻿using AssetHub.Asset;
 using AssetHub.AuditLogService;
 using AssetHub.Common;
+using AssetHub.Dashboard;
+using AssetHub.Notifications;
 using AutoMapper.Internal.Mappers;
 using ClosedXML.Excel;
+using Microsoft.AspNetCore.Http;
 using NPOI.XSSF.UserModel;
 using OfficeOpenXml;
 using System;
@@ -13,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.BackgroundJobs;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.Domain.Repositories;
 
@@ -24,12 +28,15 @@ namespace AssetHub.Entities.Asset
         private readonly IBlobContainer _blobContainer;
         private readonly ITimeZoneConverter _timeZoneConverter;
         private readonly IAuditLogService _auditLogService;
+        private readonly IBackgroundJobManager _backgroundJobManager;
 
 
 
 
-        public AssetAppService(IRepository<Asset, Guid> assetRepository, IBlobContainerFactory blobContainerFactory, ITimeZoneConverter timeZoneConverter, IAuditLogService auditLogService)
+
+        public AssetAppService(IRepository<Asset, Guid> assetRepository, IBlobContainerFactory blobContainerFactory, ITimeZoneConverter timeZoneConverter, IAuditLogService auditLogService, IBackgroundJobManager backgroundJobManager)
         {
+            _backgroundJobManager = backgroundJobManager;
             _assetRepository = assetRepository;
             _blobContainer = blobContainerFactory.Create(AssetManagementBlobContainers.AssetImportTemplates);
             _timeZoneConverter = timeZoneConverter;
@@ -60,6 +67,15 @@ namespace AssetHub.Entities.Asset
 
             asset = await _assetRepository.InsertAsync(asset, autoSave: true);
             await _auditLogService.LogAsync("Asset", "Create", $"Asset '{input.AssetName}' created.");
+            await _backgroundJobManager.EnqueueAsync(
+    new AssetNotificationEmailArgs
+    {
+        Email = "aryankhatiwoda9@gmail.com",
+        Subject = "New Asset Created",
+        Body = $"Asset '{input.AssetName}' was created by {CurrentUser.UserName}."
+    }
+);
+
             return MapWithConvertedDates(asset); // 🔁 Use helper for timezone-adjusted DTO
 
         }
@@ -98,8 +114,17 @@ namespace AssetHub.Entities.Asset
             var asset = await _assetRepository.GetAsync(id);
             await _auditLogService.LogAsync("Asset", "Delete", $"Asset '{asset.AssetName}' deleted.");
             await _assetRepository.DeleteAsync(id);
-
+            new AssetNotificationEmailArgs
+            {
+                Email = "admin@example.com",
+                Subject = "New Asset Created",
+                Body = $"Asset '{asset.AssetName}' was created by {CurrentUser.UserName}."
+            }; 
         }
+            
+
+
+        
         public async Task DeactivateAsync(Guid id)
         {
             var asset = await _assetRepository.GetAsync(id);
@@ -114,6 +139,7 @@ namespace AssetHub.Entities.Asset
             asset.IsApproved = true;
             asset.ApprovedById = CurrentUser.Id;
             await _assetRepository.UpdateAsync(asset);
+
 
         }
         public async Task<AssetDto> ApproveAsync(Guid id, ApproveAssetDto input)
@@ -136,6 +162,14 @@ namespace AssetHub.Entities.Asset
 
             asset = await _assetRepository.UpdateAsync(asset);
             await _auditLogService.LogAsync("Asset", "Approve", $"Asset '{asset.AssetName}' was {(input.Approve ? "approved" : "rejected")}.");
+            await _backgroundJobManager.EnqueueAsync(
+    new AssetNotificationEmailArgs
+    {
+        Email = "admin@example.com",
+        Subject = input.Approve ? "Asset Approved" : "Asset Rejected",
+        Body = $"Asset '{asset.AssetName}' was {(input.Approve ? "approved" : "rejected")} by {CurrentUser.UserName}."
+    }
+);
 
             return MapWithConvertedDates(asset);
         }
@@ -156,9 +190,10 @@ namespace AssetHub.Entities.Asset
                 ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             };
         }
-    
 
-    private AssetDto MapWithConvertedDates(Asset asset)
+
+
+        private AssetDto MapWithConvertedDates(Asset asset)
         {
             var dto = ObjectMapper.Map<Asset, AssetDto>(asset);
             dto.ReceivedDate = _timeZoneConverter.ConvertToUserTime(asset.ReceivedDate);
@@ -268,6 +303,30 @@ namespace AssetHub.Entities.Asset
                 await _assetRepository.InsertAsync(asset, autoSave: true);
                 await _auditLogService.LogAsync("Asset", "Import", $"Imported asset '{asset.AssetName}' from Excel.");
             }
+        }
+        public async Task<AssetDashboardDto> GetDashboardStatsAsync()
+        {
+            var allAssets = await _assetRepository.GetListAsync();
+
+            var dto = new AssetDashboardDto
+            {
+                TotalAssets = allAssets.Count,
+                ActiveAssets = allAssets.Count(x => x.IsActive),
+                ApprovedAssets = allAssets.Count(x => x.IsApproved),
+                UnapprovedAssets = allAssets.Count(x => !x.IsApproved),
+                CategoryCounts = allAssets
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Category))
+                    .GroupBy(x => x.Category)
+                    .Select(g => new AssetCategoryCountDto { Category = g.Key, Count = g.Count() })
+                    .ToList(),
+                DepartmentCounts = allAssets
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Department))
+                    .GroupBy(x => x.Department)
+                    .Select(g => new AssetDepartmentCountDto { Department = g.Key, Count = g.Count() })
+                    .ToList()
+            };
+
+            return dto;
         }
 
 

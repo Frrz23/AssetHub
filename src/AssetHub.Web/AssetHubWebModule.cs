@@ -55,6 +55,12 @@ using Volo.Abp.BlobStoring.FileSystem;
 using AssetHub.Application.Asset;
 using AssetHub.BackgroundJobs;
 using System.Text.Json.Serialization;
+using Volo.Abp.Emailing;
+using Volo.Abp.BackgroundJobs;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Volo.Abp.MailKit;
+
+
 
 
 namespace AssetHub.Web;
@@ -89,7 +95,8 @@ public class AssetHubWebModule : AbpModule
                 typeof(AssetHubDomainSharedModule).Assembly,
                 typeof(AssetHubApplicationModule).Assembly,
                 typeof(AssetHubApplicationContractsModule).Assembly,
-                typeof(AssetHubWebModule).Assembly
+                typeof(AssetHubWebModule).Assembly,
+                typeof(AbpMailKitModule).Assembly
             );
         });
 
@@ -150,6 +157,7 @@ public class AssetHubWebModule : AbpModule
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
             });
+
         }
         context.Services.AddSingleton<MailKitEmailSender>();
         context.Services.AddHostedService<AssetApprovalEmailWorker>();
@@ -169,6 +177,14 @@ public class AssetHubWebModule : AbpModule
             options.IsDynamicPermissionStoreEnabled = true;
         });
         context.Services.AddSingleton<AssetHub.Common.ITimeZoneConverter, AssetHub.Common.TimeZoneConverter>();
+        Configure<AbpBackgroundJobOptions>(options =>
+        {
+            options.IsJobExecutionEnabled = true;
+        });
+        Configure<AbpMailKitOptions>(options =>
+        {
+            options.SecureSocketOption = MailKit.Security.SecureSocketOptions.StartTls;
+        });
     }
 
 
@@ -318,6 +334,7 @@ public class AssetHubWebModule : AbpModule
         app.UseConfiguredEndpoints();
 
     }
+
     //public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context)
     //{
     //    var seeder = context.ServiceProvider.GetRequiredService<AssetExcelTemplateSeeder>();

@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AssetHub.Domain\AssetHub.Domain.csproj" />
     <ProjectReference Include="..\AssetHub.Application.Contracts\AssetHub.Application.Contracts.csproj" />
+    <ProjectReference Include="..\AssetHub.Domain\AssetHub.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

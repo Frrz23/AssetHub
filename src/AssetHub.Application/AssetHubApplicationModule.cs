@@ -9,6 +9,8 @@ using Volo.Abp.TenantManagement;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.BlobStoring.FileSystem;
 using System.IO;
+using Volo.Abp.BackgroundJobs;
+using Volo.Abp.Emailing;
 
 namespace AssetHub;
 
@@ -21,7 +23,9 @@ namespace AssetHub;
     typeof(AbpAccountApplicationModule),
     typeof(AbpTenantManagementApplicationModule),
     typeof(AbpSettingManagementApplicationModule),
-     typeof(AbpBlobStoringFileSystemModule)
+     typeof(AbpBlobStoringFileSystemModule),
+    typeof(AbpEmailingModule), 
+    typeof(AbpBackgroundJobsModule)
     )]
 public class AssetHubApplicationModule : AbpModule
 {

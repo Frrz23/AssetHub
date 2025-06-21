@@ -1,4 +1,6 @@
 ﻿using AssetHub.Asset;
+using AssetHub.Dashboard;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,8 @@ namespace AssetHub.Entities.Asset
         Task<AssetDto> ApproveAsync(Guid id, ApproveAssetDto input);
         Task<FileDto> DownloadTemplateAsync();
         Task<FileDto> ExportToExcelAsync();
-        Task ImportFromExcelAsync(byte[] fileBytes, string fileName);    
-            }
+        Task ImportFromExcelAsync(byte[] fileBytes, string fileName);
+        Task<AssetDashboardDto> GetDashboardStatsAsync();
+
+    }
 }
