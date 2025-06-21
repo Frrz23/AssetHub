@@ -59,6 +59,7 @@ using Volo.Abp.Emailing;
 using Volo.Abp.BackgroundJobs;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.MailKit;
+using AssetHub.Services;
 
 
 
@@ -185,6 +186,8 @@ public class AssetHubWebModule : AbpModule
         {
             options.SecureSocketOption = MailKit.Security.SecureSocketOptions.StartTls;
         });
+        context.Services.AddTransient<CustomEmailService>();
+
     }
 
 

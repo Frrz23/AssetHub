@@ -3,6 +3,7 @@ using AssetHub.AuditLogService;
 using AssetHub.Common;
 using AssetHub.Dashboard;
 using AssetHub.Notifications;
+using AssetHub.Services;
 using AutoMapper.Internal.Mappers;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Http;
@@ -29,18 +30,32 @@ namespace AssetHub.Entities.Asset
         private readonly ITimeZoneConverter _timeZoneConverter;
         private readonly IAuditLogService _auditLogService;
         private readonly IBackgroundJobManager _backgroundJobManager;
+        private readonly CustomEmailService _customEmailService;
 
 
 
 
 
-        public AssetAppService(IRepository<Asset, Guid> assetRepository, IBlobContainerFactory blobContainerFactory, ITimeZoneConverter timeZoneConverter, IAuditLogService auditLogService, IBackgroundJobManager backgroundJobManager)
+        public AssetAppService(IRepository<Asset, Guid> assetRepository, IBlobContainerFactory blobContainerFactory, ITimeZoneConverter timeZoneConverter, IAuditLogService auditLogService, IBackgroundJobManager backgroundJobManager, CustomEmailService customEmailService)
         {
             _backgroundJobManager = backgroundJobManager;
             _assetRepository = assetRepository;
             _blobContainer = blobContainerFactory.Create(AssetManagementBlobContainers.AssetImportTemplates);
             _timeZoneConverter = timeZoneConverter;
             _auditLogService = auditLogService;
+            _customEmailService = customEmailService;
+        }
+        public async Task NotifyAssetActionAsync(Asset asset, string action)
+        {
+            var subject = $"Asset {action}: {asset.AssetName}";
+            var body = $@"
+        <p>Asset <strong>{asset.AssetName}</strong> was <strong>{action.ToLower()}</strong> by {CurrentUser.UserName}.</p>
+        <p><strong>Time:</strong> {Clock.Now}</p>
+        <p><strong>Category:</strong> {asset.Category}</p>
+        <p><strong>Department:</strong> {asset.Department}</p>
+        <p><strong>Serial Number:</strong> {asset.SerialNumber}</p>";
+
+            await _customEmailService.SendEmailAsync("aryankhatiwoda9@gmail.com", subject, body); // Replace with dynamic email if needed
         }
 
         public async Task<AssetDto> CreateAsync(CreateAssetDto input)
@@ -67,15 +82,7 @@ namespace AssetHub.Entities.Asset
 
             asset = await _assetRepository.InsertAsync(asset, autoSave: true);
             await _auditLogService.LogAsync("Asset", "Create", $"Asset '{input.AssetName}' created.");
-            await _backgroundJobManager.EnqueueAsync(
-    new AssetNotificationEmailArgs
-    {
-        Email = "aryankhatiwoda9@gmail.com",
-        Subject = "New Asset Created",
-        Body = $"Asset '{input.AssetName}' was created by {CurrentUser.UserName}."
-    }
-);
-
+            await NotifyAssetActionAsync(asset,"Created");
             return MapWithConvertedDates(asset); // 🔁 Use helper for timezone-adjusted DTO
 
         }
@@ -106,6 +113,7 @@ namespace AssetHub.Entities.Asset
             asset.ReceivedDate = input.ReceivedDate.ToUniversalTime();
             asset = await _assetRepository.UpdateAsync(asset);
             await _auditLogService.LogAsync("Asset", "Update", $"Asset '{input.AssetName}' updated.");
+            await NotifyAssetActionAsync(asset, "Updated");
             return MapWithConvertedDates(asset);
         }
 
@@ -114,12 +122,7 @@ namespace AssetHub.Entities.Asset
             var asset = await _assetRepository.GetAsync(id);
             await _auditLogService.LogAsync("Asset", "Delete", $"Asset '{asset.AssetName}' deleted.");
             await _assetRepository.DeleteAsync(id);
-            new AssetNotificationEmailArgs
-            {
-                Email = "admin@example.com",
-                Subject = "New Asset Created",
-                Body = $"Asset '{asset.AssetName}' was created by {CurrentUser.UserName}."
-            }; 
+            await NotifyAssetActionAsync(asset, "Deleted");
         }
             
 
@@ -162,14 +165,8 @@ namespace AssetHub.Entities.Asset
 
             asset = await _assetRepository.UpdateAsync(asset);
             await _auditLogService.LogAsync("Asset", "Approve", $"Asset '{asset.AssetName}' was {(input.Approve ? "approved" : "rejected")}.");
-            await _backgroundJobManager.EnqueueAsync(
-    new AssetNotificationEmailArgs
-    {
-        Email = "admin@example.com",
-        Subject = input.Approve ? "Asset Approved" : "Asset Rejected",
-        Body = $"Asset '{asset.AssetName}' was {(input.Approve ? "approved" : "rejected")} by {CurrentUser.UserName}."
-    }
-);
+            await NotifyAssetActionAsync(asset, "Approved");
+
 
             return MapWithConvertedDates(asset);
         }
