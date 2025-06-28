@@ -24,8 +24,7 @@ namespace AssetHub;
     typeof(AbpTenantManagementApplicationModule),
     typeof(AbpSettingManagementApplicationModule),
      typeof(AbpBlobStoringFileSystemModule),
-    typeof(AbpEmailingModule), 
-    typeof(AbpBackgroundJobsModule)
+    typeof(AbpEmailingModule)
     )]
 public class AssetHubApplicationModule : AbpModule
 {

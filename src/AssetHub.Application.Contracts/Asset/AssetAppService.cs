@@ -194,6 +194,7 @@ namespace AssetHub.Entities.Asset
         {
             var dto = ObjectMapper.Map<Asset, AssetDto>(asset);
             dto.ReceivedDate = _timeZoneConverter.ConvertToUserTime(asset.ReceivedDate);
+            dto.IsApproved = asset.IsApproved;
 
             if (asset.ApprovedTime.HasValue)
             {

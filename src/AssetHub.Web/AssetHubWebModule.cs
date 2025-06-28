@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -79,7 +79,8 @@ namespace AssetHub.Web;
     typeof(AbpFeatureManagementWebModule),
     typeof(AbpSwashbuckleModule),
     typeof(AbpAspNetCoreSerilogModule),
-     typeof(AbpBlobStoringFileSystemModule)
+    typeof(AbpBlobStoringFileSystemModule)
+
 )]
 public class AssetHubWebModule : AbpModule
 {
@@ -187,6 +188,18 @@ public class AssetHubWebModule : AbpModule
             options.SecureSocketOption = MailKit.Security.SecureSocketOptions.StartTls;
         });
         context.Services.AddTransient<CustomEmailService>();
+        services.AddCors(options =>
+        {
+            options.AddPolicy("Default", builder =>
+            {
+                builder
+                    .WithOrigins("http://localhost:5173") // 👈 Your React dev server
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials(); // ✅ REQUIRED if you're using cookies/auth
+            });
+        });
+
 
     }
 
@@ -302,18 +315,15 @@ public class AssetHubWebModule : AbpModule
             app.UseErrorPage();
             app.UseHsts();
         }
-        app.UseCors(options =>
-        {
-            options.WithOrigins("http://localhost:5173") // Allow frontend URL
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
+
 
         app.UseCorrelationId();
         app.MapAbpStaticAssets();
         app.UseAbpStudioLink();
         app.UseRouting();
         app.UseAbpSecurityHeaders();
+        app.UseCors("Default"); // ✅ Use the named policy
+
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
         app.UseDeveloperExceptionPage();
@@ -324,6 +334,7 @@ public class AssetHubWebModule : AbpModule
 
         app.UseUnitOfWork();
         app.UseDynamicClaims();
+
         app.UseAuthorization();
         app.UseSwagger();
         app.UseAbpSwaggerUI(options =>
