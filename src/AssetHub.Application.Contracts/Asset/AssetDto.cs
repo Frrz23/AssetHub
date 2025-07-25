@@ -22,6 +22,9 @@ namespace AssetHub.Entities.Asset
 
         public Guid? TagId { get; set; }
 
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime ApprovedTime { get; internal set; }
+        public bool IsApproved { get; set; }  // ✅ Must be included
+
     }
 }

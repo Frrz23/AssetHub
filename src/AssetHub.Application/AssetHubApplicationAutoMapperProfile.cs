@@ -1,3 +1,9 @@
+using AssetHub.Application.Contracts.Tags;
+using AssetHub.AssetAssignments;
+using AssetHub.AuditLogService;
+using AssetHub.Entities.Asset;
+using AssetHub.Entities.AuditLog;
+using AssetHub.Entities.Tag;
 using AutoMapper;
 
 namespace AssetHub;
@@ -6,8 +12,15 @@ public class AssetHubApplicationAutoMapperProfile : Profile
 {
     public AssetHubApplicationAutoMapperProfile()
     {
-        /* You can configure your AutoMapper mapping configuration here.
-         * Alternatively, you can split your mapping configurations
-         * into multiple profile classes for a better organization. */
+        CreateMap<Tag, TagDto>();
+        CreateMap<CreateTagDto, Tag>();
+        CreateMap<AssetHub.Entities.Asset.CreateAssetDto, AssetHub.Entities.Asset.Asset>();
+        CreateMap<AssetHub.Entities.Asset.Asset, AssetHub.Entities.Asset.AssetDto>();
+        CreateMap<AuditLog, AuditLogDto>();
+        CreateMap<CreateAssetAssignmentDto, AssetAssignmentHistory>();
+        CreateMap<AssetAssignmentHistory, AssetAssignmentDto>();
+
+
+
     }
 }

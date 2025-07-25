@@ -8,6 +8,8 @@ using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement.HttpApi;
 using Volo.Abp.Localization;
 using Volo.Abp.TenantManagement;
+using Volo.Abp.BlobStoring.FileSystem;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AssetHub;
 
@@ -18,8 +20,8 @@ namespace AssetHub;
     typeof(AbpAccountHttpApiModule),
     typeof(AbpIdentityHttpApiModule),
     typeof(AbpTenantManagementHttpApiModule),
-    typeof(AbpFeatureManagementHttpApiModule)
-    )]
+    typeof(AbpFeatureManagementHttpApiModule),
+    typeof(AbpBlobStoringFileSystemModule)    )]
 public class AssetHubHttpApiModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)

@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AssetHub.Entities.Tag
+namespace AssetHub.Application.Contracts.Tags
 {
     public class TagDto
     {
         public Guid Id { get; set; }
 
-        public string MacAddress { get; set; }
+        public string MACAddress { get; set; }
 
         public bool IsActive { get; set; }
     }

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -49,6 +49,20 @@ using Volo.Abp.OpenIddict;
 using Volo.Abp.Security.Claims;
 using Volo.Abp.SettingManagement.Web;
 using Volo.Abp.Studio.Client.AspNetCore;
+using AssetHub.Asset;
+using System.Threading.Tasks;
+using Volo.Abp.BlobStoring.FileSystem;
+using AssetHub.Application.Asset;
+using AssetHub.BackgroundJobs;
+using System.Text.Json.Serialization;
+using Volo.Abp.Emailing;
+using Volo.Abp.BackgroundJobs;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Volo.Abp.MailKit;
+using AssetHub.Services;
+
+
+
 
 namespace AssetHub.Web;
 
@@ -64,7 +78,9 @@ namespace AssetHub.Web;
     typeof(AbpTenantManagementWebModule),
     typeof(AbpFeatureManagementWebModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpAspNetCoreSerilogModule)
+    typeof(AbpAspNetCoreSerilogModule),
+    typeof(AbpBlobStoringFileSystemModule)
+
 )]
 public class AssetHubWebModule : AbpModule
 {
@@ -81,7 +97,8 @@ public class AssetHubWebModule : AbpModule
                 typeof(AssetHubDomainSharedModule).Assembly,
                 typeof(AssetHubApplicationModule).Assembly,
                 typeof(AssetHubApplicationContractsModule).Assembly,
-                typeof(AssetHubWebModule).Assembly
+                typeof(AssetHubWebModule).Assembly,
+                typeof(AbpMailKitModule).Assembly
             );
         });
 
@@ -137,12 +154,16 @@ public class AssetHubWebModule : AbpModule
             {
                 options.DisableTransportSecurityRequirement = true;
             });
-            
+
             Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
             });
+
         }
+        context.Services.AddSingleton<MailKitEmailSender>();
+        context.Services.AddHostedService<AssetApprovalEmailWorker>();
+
 
         ConfigureBundles();
         ConfigureUrls(configuration);
@@ -157,6 +178,29 @@ public class AssetHubWebModule : AbpModule
         {
             options.IsDynamicPermissionStoreEnabled = true;
         });
+        context.Services.AddSingleton<AssetHub.Common.ITimeZoneConverter, AssetHub.Common.TimeZoneConverter>();
+        Configure<AbpBackgroundJobOptions>(options =>
+        {
+            options.IsJobExecutionEnabled = true;
+        });
+        Configure<AbpMailKitOptions>(options =>
+        {
+            options.SecureSocketOption = MailKit.Security.SecureSocketOptions.StartTls;
+        });
+        context.Services.AddTransient<CustomEmailService>();
+        services.AddCors(options =>
+        {
+            options.AddPolicy("Default", builder =>
+            {
+                builder
+                    .WithOrigins("http://localhost:5173") // 👈 Your React dev server
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials(); // ✅ REQUIRED if you're using cookies/auth
+            });
+        });
+
+
     }
 
 
@@ -271,20 +315,18 @@ public class AssetHubWebModule : AbpModule
             app.UseErrorPage();
             app.UseHsts();
         }
-        app.UseCors(options =>
-        {
-            options.WithOrigins("http://localhost:5173") // Allow frontend URL
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
+
+
         app.UseCorrelationId();
         app.MapAbpStaticAssets();
         app.UseAbpStudioLink();
         app.UseRouting();
         app.UseAbpSecurityHeaders();
+        app.UseCors("Default"); // ✅ Use the named policy
+
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
-
+        app.UseDeveloperExceptionPage();
         if (MultiTenancyConsts.IsEnabled)
         {
             app.UseMultiTenancy();
@@ -292,6 +334,7 @@ public class AssetHubWebModule : AbpModule
 
         app.UseUnitOfWork();
         app.UseDynamicClaims();
+
         app.UseAuthorization();
         app.UseSwagger();
         app.UseAbpSwaggerUI(options =>
@@ -300,6 +343,16 @@ public class AssetHubWebModule : AbpModule
         });
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
+        var seeder = context.ServiceProvider.GetRequiredService<AssetExcelTemplateSeeder>();
+        seeder.SeedAsync().GetAwaiter().GetResult();
         app.UseConfiguredEndpoints();
+
     }
+
+    //public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context)
+    //{
+    //    var seeder = context.ServiceProvider.GetRequiredService<AssetExcelTemplateSeeder>();
+    //    await seeder.SeedAsync();
+    //}
+
 }

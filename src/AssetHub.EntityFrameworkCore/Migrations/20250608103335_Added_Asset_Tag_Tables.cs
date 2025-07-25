@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AssetHub.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class Added_Asset_Tag_Tables : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -50,6 +50,7 @@ namespace AssetHub.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ApplicationName = table.Column<string>(type: "nvarchar(96)", maxLength: 96, nullable: true),
                     JobName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     JobArgs = table.Column<string>(type: "nvarchar(max)", maxLength: 1048576, nullable: false),
                     TryCount = table.Column<short>(type: "smallint", nullable: false, defaultValue: (short)0),
@@ -93,6 +94,7 @@ namespace AssetHub.Migrations
                     RegexDescription = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     Description = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     ValueType = table.Column<int>(type: "int", nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ExtraProperties = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ConcurrencyStamp = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false)
                 },
@@ -258,6 +260,7 @@ namespace AssetHub.Migrations
                     IsStatic = table.Column<bool>(type: "bit", nullable: false),
                     IsPublic = table.Column<bool>(type: "bit", nullable: false),
                     EntityVersion = table.Column<int>(type: "int", nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ExtraProperties = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ConcurrencyStamp = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false)
                 },
@@ -428,6 +431,28 @@ namespace AssetHub.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Assets",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AssetName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    SerialNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Department = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReceivedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    TagId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    RequestedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ApprovedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ApprovalDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Assets", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OpenIddictApplications",
                 columns: table => new
                 {
@@ -488,6 +513,23 @@ namespace AssetHub.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_OpenIddictScopes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Tags",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MACAddress = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    RequestedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ApprovedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ApprovalDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tags", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -1170,10 +1212,16 @@ namespace AssetHub.Migrations
                 name: "AbpUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Assets");
+
+            migrationBuilder.DropTable(
                 name: "OpenIddictScopes");
 
             migrationBuilder.DropTable(
                 name: "OpenIddictTokens");
+
+            migrationBuilder.DropTable(
+                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "AbpBlobContainers");

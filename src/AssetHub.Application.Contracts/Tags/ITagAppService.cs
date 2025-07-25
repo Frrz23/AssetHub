@@ -1,11 +1,12 @@
-﻿using System;
+﻿using AssetHub.Entities.Tag;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Services;
 
-namespace AssetHub.Entities.Tag
+namespace AssetHub.Application.Contracts.Tags
 {
     public interface ITagAppService : IApplicationService
     {
@@ -15,4 +16,5 @@ namespace AssetHub.Entities.Tag
         Task<TagDto> UpdateAsync(Guid id, CreateTagDto input);
         Task DeleteAsync(Guid id);
     }
+
 }
