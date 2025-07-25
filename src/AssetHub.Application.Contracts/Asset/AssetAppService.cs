@@ -97,8 +97,17 @@ namespace AssetHub.Entities.Asset
 
         public async Task<List<AssetDto>> GetListAsync()
         {
-            var assets = await _assetRepository.GetListAsync(x => x.IsActive);
-            return ObjectMapper.Map<List<Asset>, List<AssetDto>>(assets);
+            // Return ALL assets, not just active ones
+            var assets = await _assetRepository.GetListAsync();
+
+            // Convert to DTOs with proper timezone conversion
+            var dtos = new List<AssetDto>();
+            foreach (var asset in assets)
+            {
+                dtos.Add(MapWithConvertedDates(asset));
+            }
+
+            return dtos;
         }
 
         public async Task<AssetDto> UpdateAsync(Guid id, CreateAssetDto input)
@@ -135,6 +144,14 @@ namespace AssetHub.Entities.Asset
             await _assetRepository.UpdateAsync(asset);
             await _auditLogService.LogAsync("Asset", "Deactivate", $"Asset '{asset.AssetName}' deactivated.");
 
+        }
+        public async Task ReactivateAsync(Guid id)
+        {
+            var asset = await _assetRepository.GetAsync(id);
+            asset.IsActive = true;
+            await _assetRepository.UpdateAsync(asset);
+            await _auditLogService.LogAsync("Asset", "Reactivate", $"Asset '{asset.AssetName}' reactivated.");
+            await NotifyAssetActionAsync(asset, "Reactivated");
         }
         public async Task ApproveAsync(Guid id)
         {

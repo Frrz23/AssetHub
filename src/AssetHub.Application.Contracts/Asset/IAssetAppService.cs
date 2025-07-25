@@ -18,6 +18,7 @@ namespace AssetHub.Entities.Asset
         Task<AssetDto> UpdateAsync(Guid id, CreateAssetDto input);
         Task DeleteAsync(Guid id);
         Task DeactivateAsync(Guid id);
+        Task ReactivateAsync(Guid id);
         Task ApproveAsync(Guid id);
         Task<AssetDto> ApproveAsync(Guid id, ApproveAssetDto input);
         Task<FileDto> DownloadTemplateAsync();

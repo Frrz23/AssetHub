@@ -71,6 +71,12 @@ namespace AssetHub.Controllers
             await _assetAppService.DeactivateAsync(id);
             return NoContent();
         }
+        [HttpPost("{id}/reactivate")]
+        public async Task<IActionResult> ReactivateAsset(Guid id)
+        {
+            await _assetAppService.ReactivateAsync(id);
+            return NoContent();
+        }
         [HttpPost("{id}/approve")]
         public async Task<IActionResult> ApproveAsset(Guid id)
         {
